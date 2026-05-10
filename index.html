@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>闪送华中大区：城市经营者意识测评</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=DM+Serif+Display&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --flash-blue:#1A3C8F;
+  --flash-blue-mid:#2952C4;
+  --flash-blue-light:#4A72E8;
+  --flash-yellow:#FFD100;
+  --flash-yellow-dark:#E6BC00;
+  --flash-yellow-soft:#FFF3B0;
+  --dark:#0D1B3E;
+  --dark-mid:#1a2a50;
+  --mid:#6B7A99;
+  --light:#E8EDF8;
+  --white:#FFFFFF;
+  --red:#E8324A;
+  --green:#00B86B;
+  --r:12px;
+}
+
+html,body{
+  height:100%;
+  background:var(--dark);
+  font-family:'Noto Sans SC',sans-serif;
+  color:var(--white);
+  overflow-x:hidden;
+}
+
+/* NOISE TEXTURE */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+  opacity:.4;
+}
+
+#app{
+  min-height:100vh;
+  position:relative;
+  z-index:1;
+  max-width:720px;
+  margin:0 auto;
+  padding:0 0 60px;
+}
+
+/* ===== SCREEN SYSTEM ===== */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ===== COVER ===== */
+#cover{
+  min-height:100vh;
+  display:none;
+  flex-direction:column;
+  padding:0;
+  position:relative;
+  overflow:hidden;
+}
+#cover.active{display:flex}
+
+.cover-hero{
+  background:linear-gradient(135deg, var(--flash-blue) 0%, var(--dark) 60%);
+  padding:60px 28px 48px;
+  position:relative;
+  overflow:hidden;
+}
+.cover-hero::before{
+  content:'';
+  position:absolute;
+  top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle, rgba(255,209,0,.15) 0%, transparent 70%);
+  border-radius:50%;
+}
+.cover-hero::after{
+  content:'';
+  position:absolute;
+  bottom:-40px;left:-60px;
+  width:200px;height:200px;
+  background:radial-gradient(circle, rgba(74,114,232,.3) 0%, transparent 70%);
+  border-radius:50%;
+}
+
+.cover-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,209,0,.15);
+  border:1px solid rgba(255,209,0,.3);
+  border-radius:30px;
+  padding:6px 16px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:var(--flash-yellow);
+  margin-bottom:28px;
+  position:relative;z-index:1;
+}
+.cover-badge-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--flash-yellow);
+  animation:blink 1.5s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.cover-logo{
+  font-family:'DM Serif Display',serif;
+  font-size:13px;
+  letter-spacing:3px;
+  color:rgba(255,255,255,.5);
+  margin-bottom:16px;
+  position:relative;z-index:1;
+}
+
+.cover-title{
+  font-size:clamp(26px,6vw,36px);
+  font-weight:900;
+  line-height:1.3;
+  color:var(--white);
+  margin-bottom:8px;
+  position:relative;z-index:1;
+}
+.cover-title span{color:var(--flash-yellow)}
+
+.cover-subtitle{
+  font-size:14px;
+  color:rgba(255,255,255,.55);
+  line-height:1.7;
+  margin-bottom:36px;
+  position:relative;z-index:1;
+}
+
+.cover-stats{
+  display:flex;
+  gap:16px;
+  position:relative;z-index:1;
+}
+.stat-box{
+  flex:1;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:var(--r);
+  padding:14px 16px;
+}
+.stat-num{
+  font-family:'Space Mono',monospace;
+  font-size:22px;
+  font-weight:700;
+  color:var(--flash-yellow);
+  line-height:1;
+  margin-bottom:4px;
+}
+.stat-label{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.5px}
+
+.cover-body{padding:32px 28px}
+
+.cover-desc{
+  background:var(--dark-mid);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--r);
+  padding:20px;
+  margin-bottom:24px;
+}
+.cover-desc-title{
+  font-size:12px;
+  color:var(--flash-yellow);
+  letter-spacing:2px;
+  font-weight:700;
+  margin-bottom:12px;
+}
+.cover-desc-text{
+  font-size:13px;
+  line-height:1.85;
+  color:rgba(255,255,255,.65);
+}
+
+.score-preview{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:32px;
+}
+.score-tier{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:rgba(255,255,255,.04);
+  border-radius:8px;
+  padding:12px 16px;
+  border-left:3px solid transparent;
+}
+.score-tier.t1{border-left-color:#6B7A99}
+.score-tier.t2{border-left-color:var(--flash-blue-light)}
+.score-tier.t3{border-left-color:var(--flash-yellow)}
+.score-range{
+  font-family:'Space Mono',monospace;
+  font-size:12px;
+  color:rgba(255,255,255,.4);
+  min-width:48px;
+}
+.score-name{font-size:13px;font-weight:700;color:var(--white)}
+.score-name small{display:block;font-size:11px;font-weight:400;color:rgba(255,255,255,.4);margin-top:2px}
+
+.btn-start{
+  width:100%;
+  background:var(--flash-yellow);
+  color:var(--dark);
+  border:none;
+  border-radius:var(--r);
+  padding:18px;
+  font-size:16px;
+  font-weight:900;
+  font-family:'Noto Sans SC',sans-serif;
+  cursor:pointer;
+  letter-spacing:1px;
+  transition:all .2s;
+  position:relative;
+  overflow:hidden;
+}
+.btn-start::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.2),transparent);
+  pointer-events:none;
+}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,209,0,.3)}
+.btn-start:active{transform:scale(.98)}
+
+/* ===== QUIZ ===== */
+#quiz{padding:0}
+
+.quiz-header{
+  position:sticky;top:0;z-index:10;
+  background:rgba(13,27,62,.95);
+  backdrop-filter:blur(12px);
+  padding:16px 24px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.quiz-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+.quiz-logo{font-size:11px;color:var(--mid);letter-spacing:2px;font-weight:700}
+.quiz-counter{
+  font-family:'Space Mono',monospace;
+  font-size:13px;
+  color:var(--flash-yellow);
+  font-weight:700;
+}
+.prog-track{
+  height:2px;
+  background:rgba(255,255,255,.1);
+  border-radius:1px;
+  overflow:hidden;
+}
+.prog-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--flash-blue-light),var(--flash-yellow));
+  border-radius:1px;
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+}
+
+.quiz-body{padding:28px 24px 40px}
+
+.q-scenario{
+  display:inline-block;
+  font-size:10px;
+  letter-spacing:2px;
+  color:var(--flash-yellow);
+  font-weight:700;
+  margin-bottom:12px;
+  opacity:.8;
+}
+
+.q-card{
+  background:var(--dark-mid);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:24px;
+  margin-bottom:24px;
+  position:relative;
+  overflow:hidden;
+}
+.q-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,var(--flash-blue-light),var(--flash-yellow));
+}
+.q-num{
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  color:var(--mid);
+  margin-bottom:10px;
+}
+.q-text{
+  font-size:16px;
+  font-weight:700;
+  line-height:1.65;
+  color:var(--white);
+}
+
+.options{display:flex;flex-direction:column;gap:10px}
+
+.opt{
+  background:rgba(255,255,255,.04);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:var(--r);
+  padding:16px 18px;
+  cursor:pointer;
+  transition:all .2s;
+  text-align:left;
+  width:100%;
+  font-family:'Noto Sans SC',sans-serif;
+  position:relative;
+  overflow:hidden;
+}
+.opt-inner{display:flex;gap:12px;align-items:flex-start}
+.opt-label{
+  flex-shrink:0;
+  width:26px;height:26px;
+  border-radius:6px;
+  background:rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  font-weight:700;
+  color:var(--mid);
+  transition:all .2s;
+  margin-top:1px;
+}
+.opt-text{
+  font-size:13.5px;
+  line-height:1.7;
+  color:rgba(255,255,255,.7);
+  transition:color .2s;
+}
+.opt:hover{
+  border-color:rgba(74,114,232,.5);
+  background:rgba(74,114,232,.08);
+}
+.opt:hover .opt-label{background:var(--flash-blue-light);color:#fff}
+.opt:hover .opt-text{color:var(--white)}
+.opt.selected{
+  border-color:var(--flash-yellow);
+  background:rgba(255,209,0,.08);
+}
+.opt.selected .opt-label{background:var(--flash-yellow);color:var(--dark)}
+.opt.selected .opt-text{color:var(--white)}
+
+/* ===== LOADING ===== */
+#loading{
+  min-height:100vh;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:40px 28px;
+  text-align:center;
+}
+#loading.active{display:flex}
+
+.loading-ring{
+  width:80px;height:80px;
+  border:3px solid rgba(255,255,255,.08);
+  border-top-color:var(--flash-yellow);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin-bottom:28px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{
+  font-size:17px;font-weight:700;
+  color:var(--white);margin-bottom:8px;
+}
+.loading-sub{font-size:13px;color:var(--mid);line-height:1.7}
+.loading-bar{
+  width:200px;height:3px;
+  background:rgba(255,255,255,.08);
+  border-radius:2px;
+  margin:24px auto 0;
+  overflow:hidden;
+}
+.loading-bar-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--flash-blue-light),var(--flash-yellow));
+  border-radius:2px;
+  transition:width .3s ease;
+}
+
+/* ===== RESULT ===== */
+#result{padding:0}
+
+.result-hero{
+  background:linear-gradient(160deg,var(--flash-blue) 0%,var(--dark) 70%);
+  padding:52px 28px 40px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.result-hero::before{
+  content:'';
+  position:absolute;
+  top:-100px;left:50%;transform:translateX(-50%);
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(255,209,0,.12) 0%,transparent 70%);
+}
+.result-badge-text{
+  font-size:11px;letter-spacing:3px;
+  color:rgba(255,255,255,.4);
+  margin-bottom:16px;
+  position:relative;z-index:1;
+}
+.result-icon{
+  font-size:56px;
+  margin-bottom:16px;
+  display:block;
+  position:relative;z-index:1;
+}
+.result-label{
+  font-size:clamp(28px,7vw,40px);
+  font-weight:900;
+  color:var(--white);
+  margin-bottom:8px;
+  position:relative;z-index:1;
+  line-height:1.2;
+}
+.result-label span{color:var(--flash-yellow)}
+.result-score-display{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(255,209,0,.15);
+  border:1px solid rgba(255,209,0,.3);
+  border-radius:30px;
+  padding:8px 20px;
+  margin-top:16px;
+  position:relative;z-index:1;
+}
+.result-score-num{
+  font-family:'Space Mono',monospace;
+  font-size:20px;font-weight:700;
+  color:var(--flash-yellow);
+}
+.result-score-label{font-size:12px;color:rgba(255,255,255,.5)}
+
+.result-body{padding:24px}
+
+.result-card{
+  background:var(--dark-mid);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:22px;
+  margin-bottom:14px;
+}
+.rc-label{
+  font-size:10px;letter-spacing:2px;
+  color:var(--flash-yellow);
+  font-weight:700;
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.rc-label::before{
+  content:'';
+  display:inline-block;
+  width:16px;height:2px;
+  background:var(--flash-yellow);
+  border-radius:1px;
+}
+.rc-text{
+  font-size:13.5px;
+  line-height:1.9;
+  color:rgba(255,255,255,.7);
+}
+
+.advice-item{
+  display:flex;gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.advice-item:last-child{border-bottom:none;padding-bottom:0}
+.advice-item:first-child{padding-top:0}
+.advice-icon{
+  flex-shrink:0;
+  width:32px;height:32px;
+  border-radius:8px;
+  background:rgba(255,209,0,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+}
+.advice-text{font-size:13px;line-height:1.75;color:rgba(255,255,255,.65)}
+.advice-text strong{color:var(--white);display:block;margin-bottom:2px;font-size:13.5px}
+
+.breakdown-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:4px;
+}
+.breakdown-item{
+  background:rgba(255,255,255,.04);
+  border-radius:8px;
+  padding:12px;
+}
+.breakdown-q{font-size:10px;color:var(--mid);margin-bottom:4px}
+.breakdown-score{
+  font-family:'Space Mono',monospace;
+  font-size:18px;font-weight:700;
+}
+.breakdown-score.s1{color:#6B7A99}
+.breakdown-score.s2{color:var(--flash-blue-light)}
+.breakdown-score.s3{color:var(--flash-yellow)}
+
+.btn-retry{
+  display:block;width:calc(100% - 48px);
+  margin:8px 24px 0;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--r);
+  padding:15px;
+  text-align:center;
+  font-size:14px;font-weight:700;
+  color:rgba(255,255,255,.6);
+  cursor:pointer;
+  font-family:'Noto Sans SC',sans-serif;
+  transition:all .2s;
+}
+.btn-retry:hover{background:rgba(255,255,255,.1);color:var(--white)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- COVER -->
+<div class="screen" id="cover">
+  <div class="cover-hero">
+    <div class="cover-badge"><div class="cover-badge-dot"></div>内部评估工具 · 华中大区</div>
+    <div class="cover-logo">FLASHEX CENTRAL CHINA REGION</div>
+    <div class="cover-title">城市经营者意识<br><span>CEO视角</span>测评</div>
+    <div class="cover-subtitle">闪送华中大区 · 中层管理者能力评估<br>基于真实业务场景设计，测准你的经营思维段位</div>
+    <div class="cover-stats">
+      <div class="stat-box">
+        <div class="stat-num">10</div>
+        <div class="stat-label">业务场景题</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">3</div>
+        <div class="stat-label">能力段位</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">~8<span style="font-size:13px">min</span></div>
+        <div class="stat-label">预计用时</div>
+      </div>
+    </div>
+  </div>
+  <div class="cover-body">
+    <div class="cover-desc">
+      <div class="cover-desc-title">测评说明</div>
+      <div class="cover-desc-text">本测评围绕"自主城市经营"核心能力设计，涵盖资源分配、止损决策、团队管理、预算应对等10个真实华中大区业务场景。每题无绝对对错，请根据你的真实第一反应作答。</div>
+    </div>
+    <div class="score-preview">
+      <div class="score-tier t1">
+        <div class="score-range">10–17</div>
+        <div class="score-name">情感执行者<small>依赖指令，被动响应</small></div>
+      </div>
+      <div class="score-tier t2">
+        <div class="score-range">18–25</div>
+        <div class="score-name">体系管理者<small>有框架，善协同</small></div>
+      </div>
+      <div class="score-tier t3">
+        <div class="score-range">26–30</div>
+        <div class="score-name">自主经营CEO<small>全局视角，Owner心态</small></div>
+      </div>
+    </div>
+    <button class="btn-start" id="start-btn">开始测评 →</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="quiz">
+  <div class="quiz-header">
+    <div class="quiz-meta">
+      <div class="quiz-logo">FLASHEX · CEO视角测评</div>
+      <div class="quiz-counter" id="q-counter">01 / 10</div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:10%"></div></div>
+  </div>
+  <div class="quiz-body">
+    <div class="q-scenario" id="q-scenario">场景 01</div>
+    <div class="q-card">
+      <div class="q-num" id="q-num">Q01</div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+    <div class="options" id="options"></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="screen" id="loading">
+  <div class="loading-ring"></div>
+  <div class="loading-title">AI 正在分析你的经营思维...</div>
+  <div class="loading-sub">基于10个维度交叉评估<br>生成专属经营者画像</div>
+  <div class="loading-bar"><div class="loading-bar-fill" id="load-fill"></div></div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="result">
+  <div class="result-hero">
+    <div class="result-badge-text">FLASHEX · 华中大区经营者测评结果</div>
+    <div class="result-icon" id="res-icon">🏆</div>
+    <div class="result-label" id="res-label">—</div>
+    <div class="result-score-display">
+      <div class="result-score-num" id="res-score">—</div>
+      <div class="result-score-label">/ 30 分</div>
+    </div>
+  </div>
+  <div class="result-body">
+    <div class="result-card">
+      <div class="rc-label">能力画像</div>
+      <div class="rc-text" id="res-desc"></div>
+    </div>
+    <div class="result-card">
+      <div class="rc-label">优势特征</div>
+      <div class="rc-text" id="res-strength"></div>
+    </div>
+    <div class="result-card">
+      <div class="rc-label">成长建议</div>
+      <div id="res-advice"></div>
+    </div>
+    <div class="result-card">
+      <div class="rc-label">各题得分明细</div>
+      <div class="breakdown-grid" id="res-breakdown"></div>
+    </div>
+  </div>
+  <button class="btn-retry" id="retry-btn">↩ 重新测评</button>
+</div>
+
+</div>
+<script>
+const QUIZ = [
+  {
+    id: 1,
+    scenario: "场景 01 · 资源分配",
+    q: "武汉（成熟市场，稳定盈利）与长沙（高增长，尚未盈利）同时申请追加骑手补贴资源。你手头只有有限预算，如何决策？",
+    options: [
+      { label:"A", text:"武汉是基本盘，先保武汉稳定，长沙等下个季度再说", score:1 },
+      { label:"B", text:"按GMV占比分配，同时设定长沙的阶段性达标指标，动态复盘", score:2 },
+      { label:"C", text:"建立资源ROI模型：武汉保UE底线，长沙设增量目标，以未来12个月LTV为分配依据", score:3 }
+    ]
+  },
+  {
+    id: 2,
+    scenario: "场景 02 · 止损决策",
+    q: "骑手补贴已连续15天超过3元/单，按当前趋势月底将超预算40%。你的应对动作是？",
+    options: [
+      { label:"A", text:"上报大区，等待指示，先维持现状避免骑手流失", score:1 },
+      { label:"B", text:"立即拆解超支原因（供需比、峰值时段、区域分布），针对TOP3原因制定专项压降方案", score:2 },
+      { label:"C", text:"启动预设止损机制：冻结弹性补贴额度，同步启动供给侧（运力招募）和需求侧（流量干预）双向调节，并在48小时内给大区出具归因报告", score:3 }
+    ]
+  },
+  {
+    id: 3,
+    scenario: "场景 03 · 团队管理",
+    q: "你的核心城市经理王总在公司5年，业绩优秀，但拒绝将自己积累的运营SOP文档化共享，理由是【这是我的核心竞争力】。你如何处理？",
+    options: [
+      { label:"A", text:"理解他的顾虑，不强迫，让他保留这个优势", score:1 },
+      { label:"B", text:"单独沟通，说明组织利益，承诺给予激励，推动部分沉淀", score:2 },
+      { label:"C", text:"将SOP共享纳入城市经理KPI考核，同步设计知识贡献激励机制，让他成为方法论输出的受益者，而非受损者", score:3 }
+    ]
+  },
+  {
+    id: 4,
+    scenario: "场景 04 · 预算应对",
+    q: "大区突然下达通知：下季度市场营销预算削减20%。你手头有3个城市正在跑增长活动，如何响应？",
+    options: [
+      { label:"A", text:"均摊削减，每个城市各减20%，保持公平", score:1 },
+      { label:"B", text:"评估3个城市的活动ROI，优先砍掉效率最低的，保住核心增长引擎", score:2 },
+      { label:"C", text:"重新设计资金效率：砍低ROI活动，将节省资金集中投入到转化率最高的渠道，同时启动低成本的私域/口碑增长作为补充，整体GMV目标不降", score:3 }
+    ]
+  },
+  {
+    id: 5,
+    scenario: "场景 05 · 决策冲突",
+    q: "你的大区负责人要求维持与某低效合作商的战略关系，但老板（CEO）在内部会议上明确提出要清退低效合作伙伴。你收到了两个方向相反的指令，怎么办？",
+    options: [
+      { label:"A", text:"以直属上级大区负责人为准，毕竟日常汇报关系在这里", score:1 },
+      { label:"B", text:"同时向两位汇报现状，提交数据，请求明确口径后再执行", score:2 },
+      { label:"C", text:"主动牵头拉齐：整理该合作商的完整数据与战略价值评估，推动大区负责人与CEO对齐认知，给出有依据的建议，而不是简单执行任何一方", score:3 }
+    ]
+  },
+  {
+    id: 6,
+    scenario: "场景 06 · 指标取舍",
+    q: "季度末，你面临一个两难选择：冲刺GMV可以完成规模目标，但会拉低UE（每单经济效益）；守住UE则GMV可能缺口10%。你怎么选？",
+    options: [
+      { label:"A", text:"优先完成GMV，规模是当前阶段最重要的，UE以后再优化", score:1 },
+      { label:"B", text:"寻找平衡点，制定GMV与UE的双线目标，不让任何一项过度偏离", score:2 },
+      { label:"C", text:"先明确公司当前战略阶段定义（规模期/效率期），再基于战略优先级做取舍，同时向上汇报权衡逻辑，拿到明确授权后执行", score:3 }
+    ]
+  },
+  {
+    id: 7,
+    scenario: "场景 07 · 人才培育",
+    q: "一位新城市经理刚入职，你作为其导师。他前30天应该聚焦什么？你的帮带方式是？",
+    options: [
+      { label:"A", text:"让他跟着我跑，看我怎么做，边干边学", score:1 },
+      { label:"B", text:"为他设计30天结构化学习计划：1-10天熟悉数据，11-20天跑市场，21-30天独立输出城市诊断报告", score:2 },
+      { label:"C", text:"前10天做角色对齐（城市经理的核心职责与思维框架），中10天做实战陪跑（共同处理真实问题），后10天做独立验收（独立主持一次周会并给出城市经营建议），我全程做教练而非替代者", score:3 }
+    ]
+  },
+  {
+    id: 8,
+    scenario: "场景 08 · 履约危机",
+    q: "核心区域某重点商圈的履约率在过去一周下滑了30%，客诉量上升，你是如何应对的？",
+    options: [
+      { label:"A", text:"紧急调配骑手支援该区域，先把履约率抢回来", score:1 },
+      { label:"B", text:"拆解履约率下滑的原因（运力不足/订单激增/路径效率/天气等），针对主因制定恢复方案，并设48小时恢复节点", score:2 },
+      { label:"C", text:"建立该区域的履约健康仪表盘，实时追踪5个核心指标，针对根因（如运力结构性缺口）启动中期供给优化，并向客诉商户定向沟通安抚，防止客户流失扩大", score:3 }
+    ]
+  },
+  {
+    id: 9,
+    scenario: "场景 09 · 资源分配",
+    q: "大区新增一批电动车充电桩名额，需要你决定分配给哪些城市/站点。你的分配逻辑是？",
+    options: [
+      { label:"A", text:"哪个城市经理要得最积极、反映问题最多，就先给谁", score:1 },
+      { label:"B", text:"按照骑手规模和历史充电需求数据分配，优先解决实际瓶颈", score:2 },
+      { label:"C", text:"建立公开透明的分配评分模型（骑手密度、峰值运力需求、配额空缺率等），全大区公示评分结果再执行分配，同时设立二期申请机制，把公平与效率同时解决", score:3 }
+    ]
+  },
+  {
+    id: 10,
+    scenario: "场景 10 · 战略转型",
+    q: "公司要求你的城市从成熟的「标准配送」模式向高风险高回报的「高端企业定制服务」转型。你如何推进？",
+    options: [
+      { label:"A", text:"先观望其他城市怎么做，等有成功案例再跟进", score:1 },
+      { label:"B", text:"选1个试点区域小范围跑通模型，验证后再复制推广，同时不影响主业", score:2 },
+      { label:"C", text:"设计双轨并行策略：主业维持托底目标确保不失血，新业务建立独立P&L、独立团队、独立KPI，设定6个月的明确转型里程碑，每月向大区做转型健康度汇报，可进可退", score:3 }
+    ]
+  }
+];
+
+const RESULTS = {
+  low: {
+    label: "情感执行者",
+    icon: "🔧",
+    range: "10–17分",
+    desc: "你倾向于依赖上级指令和既有经验作决策，在面对复杂业务场景时以情绪感知和直觉判断为主。你执行力强，对团队有温度，但在系统性思考和主动经营上仍有较大提升空间。",
+    strength: "执行稳定，团队信任感强，善于维护日常运营秩序。在确定性任务中表现可靠，是组织的重要稳定力量。",
+    advice: [
+      { icon: "📊", title: "建立数据决策习惯", text: "每个决策前先问自己：支撑这个判断的数据是什么？逐步从直觉决策转向数据决策。" },
+      { icon: "🗺️", title: "培养全局视角", text: "尝试从「完成任务」升级到「经营城市」，定期做城市健康度全景复盘。" },
+      { icon: "🎯", title: "主动拉齐对齐", text: "遇到模糊指令，主动澄清目标而非被动等待，锻炼向上管理与横向协同能力。" }
+    ]
+  },
+  mid: {
+    label: "体系管理者",
+    icon: "⚙️",
+    range: "18–25分",
+    desc: "你已建立较成熟的管理框架，能够系统性地分析问题并设计解决方案。你善于利用流程和数据，在团队协同和向上汇报上表现良好。距离真正的「城市Owner」思维，还需要在主动性和全局经营视角上进一步突破。",
+    strength: "逻辑清晰，方案结构化，善于横向协同与机制设计。能在复杂场景中保持冷静，有较强的问题拆解和资源整合能力。",
+    advice: [
+      { icon: "🚀", title: "从管理者升级为经营者", text: "思考不仅是「做好执行」，而是「如果这是我的城市，我会怎么经营它」，建立P&L思维。" },
+      { icon: "💡", title: "提升创新破局意识", text: "在预算缩减、资源受限时，训练自己找到非线性解法，而不只是优化存量资源。" },
+      { icon: "🔮", title: "强化前瞻判断力", text: "从当下问题的解决者，成为未来风险的预判者，提前埋设应对机制。" }
+    ]
+  },
+  high: {
+    label: "自主经营CEO",
+    icon: "🏆",
+    range: "26–30分",
+    desc: "你展现出真正的「城市Owner」思维：主动承担经营责任，能在不确定性中建立机制、平衡多方利益、推动长期价值创造。你不等待指令，而是主动定义问题并设计解决方案，是华中大区核心经营人才梯队的重点标的。",
+    strength: "战略清晰，机制思维强，善于在复杂局面中建立秩序。具备向上影响力和横向整合能力，能够以终为始地驱动组织目标达成，同时兼顾短期执行与长期经营健康。",
+    advice: [
+      { icon: "🌐", title: "持续放大经营格局", text: "从城市经营到大区视角，思考如何将你的方法论复制为组织能力，成为赋能他人的乘数型管理者。" },
+      { icon: "🤝", title: "锻炼组织影响力", text: "最优秀的城市Owner不只是自己干得好，更能带动团队整体进化，建立可传承的经营文化。" },
+      { icon: "⚡", title: "保持敏捷与快速迭代", text: "在高速变化的即时配送赛道，持续保持对市场变化的敏感度，让经营框架保持动态进化。" }
+    ]
+  }
+};
+
+let currentQ = 0, scores = [], totalScore = 0;
+
+function $(id){ return document.getElementById(id); }
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// Start
+$('start-btn').addEventListener('click', () => {
+  currentQ = 0; scores = []; totalScore = 0;
+  loadQuestion();
+  showScreen('quiz');
+});
+
+function loadQuestion(){
+  const q = QUIZ[currentQ];
+  const n = currentQ + 1;
+  $('q-counter').textContent = String(n).padStart(2,'0') + ' / 10';
+  $('prog-fill').style.width = (n / 10 * 100) + '%';
+  $('q-scenario').textContent = q.scenario;
+  $('q-num').textContent = 'Q' + String(n).padStart(2,'0');
+  $('q-text').textContent = q.q;
+
+  const opts = $('options');
+  opts.innerHTML = '';
+  q.options.forEach(o => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<div class="opt-inner"><div class="opt-label">${o.label}</div><div class="opt-text">${o.text}</div></div>`;
+    btn.addEventListener('click', () => {
+      if(btn.classList.contains('selected')) return;
+      document.querySelectorAll('.opt').forEach(b => b.style.pointerEvents = 'none');
+      btn.classList.add('selected');
+      setTimeout(() => {
+        scores.push({ q: n, score: o.score });
+        totalScore += o.score;
+        currentQ++;
+        if(currentQ < QUIZ.length){
+          loadQuestion();
+          $('quiz').querySelector('.quiz-body').scrollTop = 0;
+          window.scrollTo(0,0);
+        } else {
+          startLoading();
+        }
+      }, 350);
+    });
+    opts.appendChild(btn);
+  });
+}
+
+function startLoading(){
+  showScreen('loading');
+  let pct = 0;
+  const fill = $('load-fill');
+  const iv = setInterval(() => {
+    pct += Math.random() * 12 + 3;
+    if(pct > 100) pct = 100;
+    fill.style.width = Math.floor(pct) + '%';
+    if(pct >= 100){ clearInterval(iv); setTimeout(showResult, 400); }
+  }, 150);
+}
+
+function showResult(){
+  let r;
+  if(totalScore <= 17) r = RESULTS.low;
+  else if(totalScore <= 25) r = RESULTS.mid;
+  else r = RESULTS.high;
+
+  $('res-icon').textContent = r.icon;
+  $('res-label').innerHTML = r.label;
+  $('res-score').textContent = totalScore;
+  $('res-desc').textContent = r.desc;
+  $('res-strength').textContent = r.strength;
+
+  const adv = $('res-advice');
+  adv.innerHTML = '';
+  r.advice.forEach(a => {
+    const d = document.createElement('div');
+    d.className = 'advice-item';
+    d.innerHTML = `<div class="advice-icon">${a.icon}</div><div class="advice-text"><strong>${a.title}</strong>${a.text}</div>`;
+    adv.appendChild(d);
+  });
+
+  const bd = $('res-breakdown');
+  bd.innerHTML = '';
+  scores.forEach(s => {
+    const cls = s.score === 1 ? 's1' : s.score === 2 ? 's2' : 's3';
+    const label = s.score === 1 ? 'A' : s.score === 2 ? 'B' : 'C';
+    const d = document.createElement('div');
+    d.className = 'breakdown-item';
+    d.innerHTML = `<div class="breakdown-q">Q${String(s.q).padStart(2,'0')}</div><div class="breakdown-score ${cls}">${s.score}pt <span style="font-size:11px;font-weight:400;opacity:.6">选项${label}</span></div>`;
+    bd.appendChild(d);
+  });
+
+  showScreen('result');
+}
+
+$('retry-btn').addEventListener('click', () => {
+  currentQ = 0; scores = []; totalScore = 0;
+  loadQuestion();
+  showScreen('quiz');
+});
+
+// Init
+showScreen('cover');
+</script>
+</body>
+</html>
