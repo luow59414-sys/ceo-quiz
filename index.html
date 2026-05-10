@@ -526,6 +526,63 @@ body::before{
 .breakdown-score.s2{color:var(--flash-blue-light)}
 .breakdown-score.s3{color:var(--flash-yellow)}
 
+
+.submit-card{
+  background:var(--dark-mid);
+  border:1px solid rgba(255,209,0,.2);
+  border-radius:16px;
+  padding:22px;
+  margin:0 24px 14px;
+}
+.submit-card-title{
+  font-size:10px;letter-spacing:2px;
+  color:var(--flash-yellow);font-weight:700;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.submit-card-title::before{
+  content:'';display:inline-block;
+  width:16px;height:2px;
+  background:var(--flash-yellow);border-radius:1px;
+}
+.submit-row{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.submit-input{
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.12);
+  border-radius:10px;
+  padding:14px 16px;
+  font-size:14px;
+  font-family:'Noto Sans SC',sans-serif;
+  color:var(--white);
+  outline:none;
+  transition:border-color .2s;
+  width:100%;
+}
+.submit-input::placeholder{color:rgba(255,255,255,.3)}
+.submit-input:focus{border-color:var(--flash-yellow)}
+.btn-submit{
+  width:100%;
+  background:var(--flash-yellow);
+  color:var(--dark);
+  border:none;
+  border-radius:10px;
+  padding:15px;
+  font-size:15px;font-weight:900;
+  font-family:'Noto Sans SC',sans-serif;
+  cursor:pointer;
+  transition:all .2s;
+  letter-spacing:.5px;
+}
+.btn-submit:hover{opacity:.9;transform:translateY(-1px)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.submit-status{
+  text-align:center;font-size:13px;
+  margin-top:10px;min-height:20px;
+  color:rgba(255,255,255,.5);
+}
+.submit-status.ok{color:var(--green)}
+.submit-status.err{color:var(--red)}
+
 .btn-retry{
   display:block;width:calc(100% - 48px);
   margin:8px 24px 0;
@@ -587,7 +644,12 @@ body::before{
         <div class="score-name">自主经营CEO<small>全局视角，Owner心态</small></div>
       </div>
     </div>
+    <div class="submit-row" style="margin-bottom:14px">
+      <input class="submit-input" id="cover-name" placeholder="请输入你的姓名（必填）" maxlength="20">
+      <input class="submit-input" id="cover-city" placeholder="请输入你所在的城市（必填）" maxlength="20">
+    </div>
     <button class="btn-start" id="start-btn">开始测评 →</button>
+    <div class="submit-status" id="cover-err"></div>
   </div>
 </div>
 
@@ -646,6 +708,13 @@ body::before{
       <div class="rc-label">各题得分明细</div>
       <div class="breakdown-grid" id="res-breakdown"></div>
     </div>
+  </div>
+
+  <div class="submit-card">
+    <div class="submit-card-title">提交结果 · 记录在案</div>
+    <div id="sub-name-display" style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:14px"></div>
+    <button class="btn-submit" id="sub-btn">提交测评结果</button>
+    <div class="submit-status" id="sub-status"></div>
   </div>
   <button class="btn-retry" id="retry-btn">↩ 重新测评</button>
 </div>
@@ -806,6 +875,12 @@ function showScreen(id){
 
 // Start
 $('start-btn').addEventListener('click', () => {
+  const name = $('cover-name').value.trim();
+  const city = $('cover-city').value.trim();
+  const err = $('cover-err');
+  if(!name){ err.className='submit-status err'; err.textContent='请填写姓名后再开始'; $('cover-name').focus(); return; }
+  if(!city){ err.className='submit-status err'; err.textContent='请填写城市后再开始'; $('cover-city').focus(); return; }
+  err.textContent='';
   currentQ = 0; scores = []; totalScore = 0;
   loadQuestion();
   showScreen('quiz');
@@ -891,6 +966,13 @@ function showResult(){
     bd.appendChild(d);
   });
 
+  const nm = $('cover-name').value.trim();
+  const ct = $('cover-city').value.trim();
+  $('sub-name-display').textContent = nm + ' · ' + ct;
+  $('sub-btn').disabled = false;
+  $('sub-btn').textContent = '提交测评结果';
+  $('sub-status').textContent = '';
+  $('sub-status').className = 'submit-status';
   showScreen('result');
 }
 
@@ -898,6 +980,45 @@ $('retry-btn').addEventListener('click', () => {
   currentQ = 0; scores = []; totalScore = 0;
   loadQuestion();
   showScreen('quiz');
+});
+
+
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyouCkycZlLl9b9zi4VfH5L6HE67aonWiIPmS5cs0Q6Kb5k4fS3PsHK2jaPgMXObsSI/exec';
+
+$('sub-btn').addEventListener('click', async () => {
+  const name = $('cover-name').value.trim();
+  const city = $('cover-city').value.trim();
+
+  const btn = $('sub-btn');
+  const status = $('sub-status');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  status.className = 'submit-status';
+  status.textContent = '正在提交，请稍候...';
+
+  const payload = {
+    name, city,
+    score: totalScore,
+    level: totalScore <= 17 ? '情感执行者' : totalScore <= 25 ? '体系管理者' : '自主经营CEO'
+  };
+  scores.forEach((s,i) => { payload['q'+(i+1)] = s.score; });
+
+  try {
+    await fetch(SHEET_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    status.className = 'submit-status ok';
+    status.textContent = '✓ 提交成功！结果已记录';
+    btn.textContent = '已提交';
+  } catch(e) {
+    status.className = 'submit-status err';
+    status.textContent = '提交失败，请检查网络后重试';
+    btn.disabled = false;
+    btn.textContent = '重新提交';
+  }
 });
 
 // Init
